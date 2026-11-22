@@ -308,14 +308,6 @@
       font-size: 13px;
     }
 
-    .promo {
-      background: var(--cream);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 12px;
-      margin-bottom: 12px;
-    }
-
     .float-wa {
       position: fixed;
       right: 20px;
@@ -342,7 +334,7 @@
   <header>
     <div class="nav-wrap">
       <a class="brand" href="#inicio">
-        <img src="40dbe08a-cdbf-4e59-90fe-85207158fa8b.jpg" alt="Encanto Prata e Ouro" />
+        <img src="40dbe08a-cdbf-4e59-90fe-85207158fa8b.jpg" alt="Encanto Prata e Ouro" onerror="tryNextSrc(this, ['40dbe08a-cdbf-4e59-90fe-85207158fa8b.jpeg', '40dbe08a-cdbf-4e59-90fe-85207158fa8b'])" />
         <span>Encanto Prata e Ouro</span>
       </a>
       <nav class="menu">
@@ -362,14 +354,14 @@
     <div>
       <div class="eyebrow">PRATA 925 &bull; OURO 18K</div>
       <h1>Joias que acompanham os seus melhores momentos.</h1>
-      <p>Explore nossos álbuns de prata e ouro, fale direto com a nossa equipe pelo WhatsApp e confira condições especiais no Pix e compras acima de R$ 200,00.</p>
+      <p>Confira nossos álbuns em Prata 925 e Ouro 18k, fale direto conosco pelo WhatsApp e aproveite condições especiais no Pix.</p>
       <div class="actions">
         <a class="btn" href="#albuns">Ver álbuns</a>
         <a class="btn btn-ghost" target="_blank" href="https://wa.me/5598984456000?text=Ol%C3%A1!%20Gostaria%20de%20atendimento%20na%20Encanto%20Prata%20e%20Ouro.">Atendimento WhatsApp</a>
       </div>
     </div>
     <div class="hero-box">
-      <img src="Cordão baiano.jpg" alt="Cordão baiano Encanto Prata e Ouro" />
+      <img src="Cordão baiano.jpg" alt="Cordão baiano Encanto Prata e Ouro" onerror="tryNextSrc(this, ['cordão baiano.jpg', 'cordão baiano', 'Cordão baiano.jpeg', 'cordao-baiano.jpg'])" />
     </div>
   </section>
 
@@ -391,8 +383,8 @@
     <div class="info-box">
       <div class="eyebrow">SOBRE NÓS</div>
       <h3>Encanto Prata e Ouro</h3>
-      <p>A Encanto Prata e Ouro nasceu com o propósito de oferecer peças em Prata 925 e Ouro 18k com curadoria cuidadosa, transparência e atendimento próximo para quem busca presente ou uso diário.</p>
-      <p>Nas compras acima de R$ 200,00, você ganha pulseira de bolinhas.</p>
+      <p>A Encanto Prata e Ouro trabalha com peças em Prata 925 e Ouro 18k pensadas para o dia a dia, ocasiões especiais e presentes marcantes, sempre com atendimento direto e de confiança.</p>
+      <p style="margin-bottom:0;">Nosso compromisso é ajudar você a encontrar a peça certa com clareza, praticidade e condições especiais para pagamento no Pix.</p>
     </div>
 
     <div class="info-box" id="compra-de-ouro">
@@ -412,7 +404,6 @@
       <div class="drawer-list" id="bag-items"></div>
     </div>
     <div>
-      <div class="promo" id="promo-msg">Compras acima de R$ 200,00 ganham pulseira de bolinhas.</div>
       <div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom:12px;">
         <span>Total:</span>
         <span id="bag-total">R$ 0,00</span>
@@ -452,12 +443,26 @@
         album: "Conjuntos de Prata",
         price: 179.90,
         pix: true,
-        img: "conjunto-ponto-de-luz-gota.jpg.jpeg"
+        img: "conjunto-ponto-de-luz-gota.jpg.jpeg",
+        fallbacks: [
+          "conjunto-ponto-de-luz-gota.jpg",
+          "conjunto-ponto-de-luz-gota.jpeg",
+          "onjunto-ponto-de-luz-gota.jpg",
+          "trio ponto de luz.jpeg"
+        ]
       }
     ];
 
     let selectedAlbum = "Todos";
     let bag = [];
+
+    function tryNextSrc(imgEl, candidates) {
+      const idx = Number(imgEl.dataset.fbIdx || 0);
+      if (idx < candidates.length) {
+        imgEl.dataset.fbIdx = String(idx + 1);
+        imgEl.src = candidates[idx];
+      }
+    }
 
     function money(v) {
       return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -496,14 +501,16 @@
         : PRODUCTS.filter((p) => p.album === selectedAlbum);
 
       if (items.length === 0) {
-        list.innerHTML = `<div class="info-box" style="grid-column: 1 / -1;"><p style="margin:0;">Nenhuma peça cadastrada ainda no álbum <strong>${selectedAlbum}</strong>. Amanhã adicionamos as fotos aqui.</p></div>`;
+        list.innerHTML = `<div class="info-box" style="grid-column: 1 / -1;"><p style="margin:0;">Nenhuma peça cadastrada ainda no álbum <strong>${selectedAlbum}</strong>.</p></div>`;
         return;
       }
 
-      list.innerHTML = items.map((p) => `
+      list.innerHTML = items.map((p) => {
+        const fbJson = JSON.stringify(p.fallbacks || []).replace(/"/g, "&quot;");
+        return `
         <article class="product-card">
           <div>
-            <img src="${p.img}" alt="${p.name}" />
+            <img src="${p.img}" alt="${p.name}" onerror="tryNextSrc(this, ${fbJson})" />
             <div class="product-info">
               <div class="eyebrow" style="margin-bottom:2px;">${p.album}</div>
               <h3>${p.name}</h3>
@@ -515,7 +522,8 @@
             <button class="btn" style="width:100%;" onclick="addBag(${p.id})">Adicionar à sacola</button>
           </div>
         </article>
-      `).join("");
+      `;
+      }).join("");
     }
 
     function addBag(id) {
@@ -541,19 +549,12 @@
       const list = document.getElementById("bag-items");
       const count = document.getElementById("bag-count");
       const totalEl = document.getElementById("bag-total");
-      const promo = document.getElementById("promo-msg");
 
       const qty = bag.reduce((s, i) => s + i.qty, 0);
       const total = bag.reduce((s, i) => s + i.price * i.qty, 0);
 
       count.textContent = qty;
       totalEl.textContent = money(total);
-
-      if (total >= 200) {
-        promo.textContent = "Parabéns! Compras acima de R$ 200,00 ganham pulseira de bolinhas.";
-      } else {
-        promo.textContent = `Faltam ${money(Math.max(0, 200 - total))} para ganhar pulseira de bolinhas (compras acima de R$ 200,00).`;
-      }
 
       if (bag.length === 0) {
         list.innerHTML = "<p style='color:#665e55; font-size:13px;'>Sua sacola está vazia.</p>";
@@ -578,7 +579,6 @@
       }
       const total = bag.reduce((s, i) => s + i.price * i.qty, 0);
       const lines = bag.map((i) => `- ${i.qty}x ${i.name} (${money(i.price * i.qty)})`);
-      if (total >= 200) lines.push("- Brinde: Pulseira de bolinhas (compras acima de R$ 200,00)");
       const msg = `Olá! Gostaria de finalizar meu pedido na Encanto Prata e Ouro:\n\n${lines.join("\n")}\n\nTotal: ${money(total)}`;
       window.open(`https://wa.me/${WA_PHONE}?text=${encodeURIComponent(msg)}`, "_blank");
     }
